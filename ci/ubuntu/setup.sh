@@ -12,14 +12,14 @@ curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | sudo tee /e
 echo 'deb [signed-by=/etc/apt/keyrings/kitware-archive-latest.asc] https://apt.kitware.com/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/kitware.list > /dev/null
 
 # Add required repositories
-# sudo add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
+sudo add-apt-repository -y ppa:ubuntugis/ubuntugis-unstable
 sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main'
 
 sudo apt-get update
 
 sudo apt-get install -y --allow-unauthenticated build-essential protobuf-c-compiler libprotobuf-c-dev bison flex libfribidi-dev \
             librsvg2-dev colordiff libpq-dev libpng-dev libjpeg-dev libgif-dev libgeos-dev libfreetype6-dev libfcgi-dev libcurl4-gnutls-dev \
-            libcairo2-dev libgdal-dev libproj-dev libxml2-dev libexempi-dev lcov lftp postgis libharfbuzz-dev gdal-bin proj-bin ccache curl \
+            libcairo2-dev libgdal26-dev libproj-dev libxml2-dev libexempi-dev lcov lftp postgis libharfbuzz-dev gdal-bin proj-bin ccache curl \
             libpcre2-dev \
             postgresql-server-dev-12 postgresql-12-postgis-3 postgresql-12-postgis-3-scripts g++ ca-certificates \
             libmono-system-drawing4.0-cil mono-mcs \
