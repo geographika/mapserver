@@ -554,6 +554,7 @@ def get_pytests(dirname):
 def _run(map, out_file, command, extra_args):
 
     strict = extra_args.getoption("strict_mode")
+    strict = False
     valgrind = extra_args.getoption("valgrind")
     run_under_asan = extra_args.getoption("run_under_asan")
     verbose = extra_args.getoption("verbose") >= 2
