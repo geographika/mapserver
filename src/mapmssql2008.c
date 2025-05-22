@@ -747,7 +747,7 @@ static void setConnError(msODBCconn *conn) {
   conn->errorMessage[len] = 0;
 }
 
-#ifdef USE_ICONV
+#if defined(_WIN32) && defined(USE_ICONV)
 static SQLWCHAR *convertCwchartToSQLWCHAR(const wchar_t *inStr) {
   SQLWCHAR *outStr;
   int i, len;
@@ -767,8 +767,6 @@ static msODBCconn *mssql2008Connect(const char *connString) {
   SQLSMALLINT outConnStringLen;
   SQLRETURN rc;
   msODBCconn *conn = msSmallMalloc(sizeof(msODBCconn));
-  char fullConnString[1024];
-
   memset(conn, 0, sizeof(*conn));
 
   SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &conn->henv);
@@ -777,32 +775,24 @@ static msODBCconn *mssql2008Connect(const char *connString) {
 
   SQLAllocHandle(SQL_HANDLE_DBC, conn->henv, &conn->hdbc);
 
-  if (strcasestr(connString, "DRIVER=") == 0) {
-    snprintf(fullConnString, sizeof(fullConnString), "DRIVER={SQL Server};%s",
-             connString);
-
-    connString = fullConnString;
-  }
-
-  {
-#ifdef USE_ICONV
-    wchar_t *decodedConnString =
-        msConvertWideStringFromUTF8(connString, "UCS-2LE");
-    SQLWCHAR outConnString[1024];
-    SQLWCHAR *decodedConnStringSQLWCHAR =
-        convertCwchartToSQLWCHAR(decodedConnString);
-    rc = SQLDriverConnectW(conn->hdbc, NULL, decodedConnStringSQLWCHAR, SQL_NTS,
-                           outConnString, 1024, &outConnStringLen,
-                           SQL_DRIVER_NOPROMPT);
-    msFree(decodedConnString);
-    msFree(decodedConnStringSQLWCHAR);
+#if defined(_WIN32) && defined(USE_ICONV)
+  wchar_t *decodedConnString =
+      msConvertWideStringFromUTF8(connString, "UCS-2LE");
+  SQLWCHAR outConnString[1024];
+  SQLWCHAR *decodedConnStringSQLWCHAR =
+      convertCwchartToSQLWCHAR(decodedConnString);
+  rc = SQLDriverConnectW(conn->hdbc, NULL, decodedConnStringSQLWCHAR, SQL_NTS,
+                         outConnString, 1024, &outConnStringLen,
+                         SQL_DRIVER_NOPROMPT);
+  msFree(decodedConnString);
+  msFree(decodedConnStringSQLWCHAR);
 #else
-    SQLCHAR outConnString[1024];
-    rc = SQLDriverConnect(conn->hdbc, NULL, (SQLCHAR *)connString, SQL_NTS,
-                          outConnString, 1024, &outConnStringLen,
-                          SQL_DRIVER_NOPROMPT);
+  SQLCHAR outConnString[1024];
+  rc = SQLDriverConnect(conn->hdbc, NULL, (SQLCHAR *)connString, SQL_NTS,
+                        outConnString, 1024, &outConnStringLen,
+                        SQL_DRIVER_NOPROMPT);
 #endif
-  }
+
 
   if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
     setConnError(conn);
@@ -832,7 +822,7 @@ static int executeSQL(msODBCconn *conn, const char *sql) {
 
   SQLCloseCursor(conn->hstmt);
 
-#ifdef USE_ICONV
+#if defined(_WIN32) && defined(USE_ICONV)
   {
     wchar_t *decodedSql = msConvertWideStringFromUTF8(sql, "UCS-2LE");
     SQLWCHAR *decodedSqlSQLWCHAR = convertCwchartToSQLWCHAR(decodedSql);
@@ -1521,7 +1511,7 @@ static int prepare_database(layerObj *layer, rectObj rect, char **query_string,
 
   /* adding items to the select list */
   for (t = 0; t < layer->numitems; t++) {
-#ifdef USE_ICONV
+#if defined(_WIN32) && defined(USE_ICONV)
     query = msStringConcatenate(query, "convert(nvarchar(max), [");
 #else
     query = msStringConcatenate(query, "convert(varchar(max), [");
@@ -2307,7 +2297,7 @@ int msMSSQL2008LayerGetShapeRandom(layerObj *layer, shapeObj *shape,
           return MS_FAILURE;
         }
 
-#ifdef USE_ICONV
+#if defined(_WIN32) && defined(USE_ICONV)
         SQLSMALLINT targetType = SQL_WCHAR;
 #else
         SQLSMALLINT targetType = SQL_CHAR;
@@ -2328,7 +2318,7 @@ int msMSSQL2008LayerGetShapeRandom(layerObj *layer, shapeObj *shape,
              * include */
             /* If we get SQL_NO_TOTAL we do not know how big buffer we need so
              * we increase it with 512. */
-#ifdef USE_ICONV
+#if defined(_WIN32) && defined(USE_ICONV)
             totalLen -= sizeof(wchar_t);
             emptyLen = retLen != SQL_NO_TOTAL
                            ? retLen - emptyLen + 2 * sizeof(wchar_t)
@@ -2354,7 +2344,7 @@ int msMSSQL2008LayerGetShapeRandom(layerObj *layer, shapeObj *shape,
 
         if (totalLen > 0) {
           /* Pop the value into the shape's value array */
-#ifdef USE_ICONV
+#if defined(_WIN32) && defined(USE_ICONV)
           shape->values[t] =
               msConvertWideStringToUTF8((wchar_t *)valueBuffer, "UCS-2LE");
           msFree(valueBuffer);
