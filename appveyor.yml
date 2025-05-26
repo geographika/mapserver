@@ -39,11 +39,13 @@ clone_depth: 5
 init:
   - net start MSSQL$SQL2019
   # we can skip testing Python versions apart from for releases by updating the version below
-  - ps: |
-        if ($env:APPVEYOR_REPO_TAG -ne $TRUE) {
-            Write-Host "Skipping build, not a tagged release."
-            Exit-AppVeyorBuild
-        }
+  #- ps: |
+  #      if ($env:APPVEYOR_REPO_TAG -ne $TRUE) {
+  #          if ("c:/python37-x64" -contains $env:Python_ROOT_DIR -eq $TRUE) {
+  #              Write-Host "Skipping build, not a tagged release."
+  #              Exit-AppVeyorBuild
+  #          }
+  #      }
 
 build_script:
   - ps: Write-Host "Build tags - $env:APPVEYOR_REPO_TAG $env:APPVEYOR_REPO_TAG_NAME"
