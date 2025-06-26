@@ -12,15 +12,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-latest, windows-2022, ubuntu-latest]
 
     steps:
      - uses: actions/checkout@v4
      - uses: ilammy/msvc-dev-cmd@v1
-       if: matrix.os == 'windows-latest'
+       if: matrix.os == 'windows-2022'
      - name: Support longpaths
        run: git config --system core.longpaths true
-       if: matrix.os == 'windows-latest'
+       if: matrix.os == 'windows-2022'
      - uses: mamba-org/setup-micromamba@v2
        with:
            init-shell: bash
