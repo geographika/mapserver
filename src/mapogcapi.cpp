@@ -960,6 +960,33 @@ static void outputTemplate(const char *directory, const char *filename,
   }
 }
 
+static void msWFSSetShapeCache(mapObj *map) {
+  const char *pszFeaturesCacheCount =
+      msOWSLookupMetadata(&(map->web.metadata), "F", "features_cache_count");
+  const char *pszFeaturesCacheSize =
+      msOWSLookupMetadata(&(map->web.metadata), "F", "features_cache_size");
+  if (pszFeaturesCacheCount) {
+    map->query.cache_shapes = MS_TRUE;
+    map->query.max_cached_shape_count = atoi(pszFeaturesCacheCount);
+    if (map->debug >= MS_DEBUGLEVEL_V) {
+      msDebug("Caching up to %d shapes\n", map->query.max_cached_shape_count);
+    }
+  }
+
+  if (pszFeaturesCacheSize) {
+    map->query.cache_shapes = MS_TRUE;
+    map->query.max_cached_shape_ram_amount = atoi(pszFeaturesCacheSize);
+    if (strstr(pszFeaturesCacheSize, "mb") ||
+        strstr(pszFeaturesCacheSize, "MB"))
+      map->query.max_cached_shape_ram_amount *= 1024 * 1024;
+    if (map->debug >= MS_DEBUGLEVEL_V) {
+      msDebug("Caching up to %d bytes of shapes\n",
+              map->query.max_cached_shape_ram_amount);
+    }
+  }
+}
+
+
 /*
 ** Generic response output.
 */
@@ -1346,6 +1373,8 @@ static int processCollectionItemsRequest(mapObj *map, cgiRequestObj *request,
       map->query.only_cache_result_count = MS_FALSE;
       map->query.maxfeatures = limit;
 
+      msWFSSetShapeCache(map);
+
       const char *offsetStr = getRequestParameter(request, "offset");
       if (offsetStr) {
         if (msStringToInt(offsetStr, &offset, 10) != MS_SUCCESS) {
@@ -1455,17 +1484,23 @@ static int processCollectionItemsRequest(mapObj *map, cgiRequestObj *request,
     }
 
     const int geometry_precision = getGeometryPrecision(map, layer);
+    int status = 0;
 
     for (i = 0; i < layer->resultcache->numresults; i++) {
-      int status =
-          msLayerGetShape(layer, &shape, &(layer->resultcache->results[i]));
-      if (status != MS_SUCCESS) {
-        msGMLFreeItems(items);
-        msGMLFreeConstants(constants);
-        outputError(OGCAPI_SERVER_ERROR, "Error fetching feature.");
-        return MS_SUCCESS;
+        if (layer->resultcache->results[i].shape) {
+          msCopyShape(layer->resultcache->results[i].shape, &shape);
+        }
+      else {
+          status =
+              msLayerGetShape(layer, &shape, &(layer->resultcache->results[i]));
+          if (status != MS_SUCCESS) {
+            msGMLFreeItems(items);
+            msGMLFreeConstants(constants);
+            outputError(OGCAPI_SERVER_ERROR, "Error fetching feature.");
+            return MS_SUCCESS;
+          }
       }
-
+      // check - already reprojected?
       if (reprObjs.reprojector) {
         status = msProjectShapeEx(reprObjs.reprojector, &shape);
         if (status != MS_SUCCESS) {
