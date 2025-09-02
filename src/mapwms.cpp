@@ -3610,13 +3610,16 @@ static int msWMSGetCapabilities(mapObj *map, int nVersion, cgiRequestObj *req,
 
   /* SLD support */
   if (strcasecmp(sldenabled, "true") == 0) {
-    if (nVersion >= OWS_1_3_0)
-      msIO_printf("  <sld:UserDefinedSymbolization SupportSLD=\"1\" "
-                  "UserLayer=\"0\" UserStyle=\"1\" RemoteWFS=\"0\" "
-                  "InlineFeature=\"0\" RemoteWCS=\"0\"/>\n");
-    else
-      msIO_printf("  <UserDefinedSymbolization SupportSLD=\"1\" "
-                  "UserLayer=\"0\" UserStyle=\"1\" RemoteWFS=\"0\"/>\n");
+    if (nVersion >= OWS_1_1_0) {
+      if (nVersion >= OWS_1_3_0) {
+        msIO_printf("  <sld:UserDefinedSymbolization SupportSLD=\"1\" "
+                    "UserLayer=\"0\" UserStyle=\"1\" RemoteWFS=\"0\" "
+                    "InlineFeature=\"0\" RemoteWCS=\"0\"/>\n");
+      } else {
+        msIO_printf("  <UserDefinedSymbolization SupportSLD=\"1\" "
+                    "UserLayer=\"0\" UserStyle=\"1\" RemoteWFS=\"0\"/>\n");
+      }
+    }
   }
 
   /* INSPIRE extended capabilities for WMS 1.3.0 */
