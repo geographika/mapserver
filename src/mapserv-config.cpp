@@ -189,6 +189,9 @@ configObj *msLoadConfig(const char *ms_config_file) {
     }
   }
 
+  // store the path to the CONFIG file
+  msConfigSetConfigOption("MAPSERVER_CONFIG_FILE", ms_config_file);
+
   return config;
 }
 
@@ -201,7 +204,36 @@ const char *msConfigGetEnv(const configObj *config, const char *key) {
 const char *msConfigGetMap(const configObj *config, const char *key) {
   if (config == NULL || key == NULL)
     return NULL;
-  return msLookupHashTable(&config->maps, key);
+
+  const char *mapFile = msLookupHashTable(&config->maps, key);
+  if (!mapFile)
+    return NULL;
+
+  // if the mapFile path is relative, use the
+  // location of the CONFIG file to define the full path
+  if (CPLIsFilenameRelative(mapFile)) {
+    char *configPath =
+        msGetPath(CPLGetConfigOption("MAPSERVER_CONFIG_FILE", NULL));
+
+    if (!configPath)
+      return NULL;
+
+    // char tmp[MS_MAXPATHLEN];
+    static thread_local char tmp[MS_MAXPATHLEN]; // thread-local buffer
+
+    if (msBuildPath(tmp, configPath, mapFile) == NULL) {
+      free(configPath);
+      return NULL;
+    }
+
+    free(configPath);
+    mapFile = tmp;
+    // Replace the old value in the hash table (would need to remove const from
+    // *config) msInsertHashTable(&(config->maps), key, msStrdup(tmp)); mapFile
+    // = msLookupHashTable(&config->maps, key);
+  }
+
+  return mapFile;
 }
 
 const char *msConfigGetPlugin(const configObj *config, const char *key) {
