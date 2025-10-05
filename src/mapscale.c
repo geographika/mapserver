@@ -78,7 +78,8 @@ static double roundInterval(double d) {
 */
 int msCalculateScale(rectObj extent, int units, int width, int height,
                      double resolution, double *scale) {
-  double md, gd, center_y;
+  // double md, gd, center_y;
+  double md, xd, yd, center_y;
 
   /* if((extent.maxx == extent.minx) || (extent.maxy == extent.miny))   */
   if (!MS_VALID_EXTENT(extent)) {
@@ -110,9 +111,13 @@ int msCalculateScale(rectObj extent, int units, int width, int height,
               units, center_y)); /* remember, we use a pixel-center to
                                     pixel-center extent, hence the width-1 */
     // gd = extent.maxx - extent.minx;
-    gd = sqrt(0.5 * pow((extent.maxx - extent.minx), 2) +
-              pow((extent.maxy - extent.miny), 2));
-    *scale = gd / md;
+    //  gd = sqrt(0.5 * pow((extent.maxx - extent.minx), 2) +
+    //            pow((extent.maxy - extent.miny), 2));
+    xd = extent.maxx - extent.minx;
+    yd = extent.maxy - extent.miny;
+
+    // *scale = gd / md;
+    *scale = MS_MAX(xd, yd) / md;
     break;
   default:
     *scale = -1; /* this is not an error */
