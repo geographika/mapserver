@@ -109,7 +109,9 @@ int msCalculateScale(rectObj extent, int units, int width, int height,
           msInchesPerUnit(
               units, center_y)); /* remember, we use a pixel-center to
                                     pixel-center extent, hence the width-1 */
-    gd = extent.maxx - extent.minx;
+    // gd = extent.maxx - extent.minx;
+    gd = sqrt(0.5 * pow((extent.maxx - extent.minx), 2) +
+              pow((extent.maxy - extent.miny), 2));
     *scale = gd / md;
     break;
   default:
