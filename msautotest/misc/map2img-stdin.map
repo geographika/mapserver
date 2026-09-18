@@ -5,9 +5,9 @@
 # RUN_PARMS: map2img-stdin-implicit.png [MAP2IMG] -o [RESULT] < [MAPFILE]
 # RUN_PARMS: map2img-stdin-iterations.png [MAP2IMG] -m - -c 2 -o [RESULT] < [MAPFILE]
 # RUN_PARMS: map2img-stdin-file-wins.png [MAP2IMG] -m [MAPFILE] -o [RESULT] < map2img-stdin-other.map
-# RUN_PARMS: map2img-stdin-parsed.txt [MAP2IMG] -m - -l "notalayer" -o /dev/null < [MAPFILE] > [RESULT] 2>&1 [ASAN_SKIP_LOG]
-# RUN_PARMS: map2img-stdin-empty.txt [MAP2IMG] -m - -o /dev/null < map2img-stdin-empty.map > [RESULT] 2>&1 [ASAN_SKIP_LOG]
-# RUN_PARMS: map2img-stdin-invalid.txt [MAP2IMG] -m - -o /dev/null < map2img-stdin-invalid.map > [RESULT] 2>&1 [ASAN_SKIP_LOG]
+# RUN_PARMS: map2img-stdin-parsed.txt [MAP2IMG] -m - -l "notalayer" < data/map2img-stdin.map > [RESULT] 2>&1 [ASAN_SKIP_LOG]
+# RUN_PARMS: map2img-stdin-empty.txt [MAP2IMG] -m - < data/map2img-stdin-empty.map > [RESULT] 2>&1 [ASAN_SKIP_LOG]
+# RUN_PARMS: map2img-stdin-garbage.txt [MAP2IMG] -m - < data/map2img-stdin-garbage.map > [RESULT] 2>&1 [ASAN_SKIP_LOG]
 
 MAP
   NAME STDIN_TEST
