@@ -6982,12 +6982,11 @@ void msApplyStyleItemsToLayers(mapObj *map) {
 ** Sets up string-based mapfile loading and calls loadMapInternal to do the
 *work.
 */
-mapObj *msLoadMapFromString(char *buffer, char *new_mappath,
+mapObj *msLoadMapFromString(const char *buffer, const char *new_mappath,
                             const configObj *config) {
   mapObj *map;
   struct mstimeval starttime = {0}, endtime = {0};
   char szPath[MS_MAXPATHLEN], szCWDPath[MS_MAXPATHLEN];
-  char *mappath = NULL;
   int debuglevel;
 
   debuglevel = (int)msGetGlobalDebugLevel();
@@ -7031,8 +7030,7 @@ mapObj *msLoadMapFromString(char *buffer, char *new_mappath,
     return (NULL);
   }
   if (new_mappath) {
-    mappath = msStrdup(new_mappath);
-    map->mappath = msStrdup(msBuildPath(szPath, szCWDPath, mappath));
+    map->mappath = msStrdup(msBuildPath(szPath, szCWDPath, new_mappath));
   } else
     map->mappath = msStrdup(szCWDPath);
 
@@ -7041,13 +7039,10 @@ mapObj *msLoadMapFromString(char *buffer, char *new_mappath,
   if (loadMapInternal(map) != MS_SUCCESS) {
     msFreeMap(map);
     msReleaseLock(TLOCK_PARSER);
-    if (mappath != NULL)
-      free(mappath);
+    msyylex_destroy();
     return NULL;
   }
 
-  if (mappath != NULL)
-    free(mappath);
   msyylex_destroy();
 
   msReleaseLock(TLOCK_PARSER);
@@ -7062,8 +7057,10 @@ mapObj *msLoadMapFromString(char *buffer, char *new_mappath,
                 (starttime.tv_sec + starttime.tv_usec / 1.0e6));
   }
 
-  if (resolveSymbolNames(map) == MS_FAILURE)
+  if (resolveSymbolNames(map) == MS_FAILURE) {
+    msFreeMap(map);
     return NULL;
+  }
 
   return map;
 }
