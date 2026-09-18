@@ -38,7 +38,22 @@
 #ifdef _WIN32
 #include <fcntl.h>
 #include <io.h>
+#else
+#include <unistd.h>
 #endif
+
+/**
+ * Is stdin something other than a terminal (a pipe, a file, /dev/null)?
+ * Used to decide whether an omitted -m means "read stdin" or "you forgot
+ * an argument" — without it, a bare map2img would block forever.
+ */
+static int stdinIsRedirected(void) {
+#ifdef _WIN32
+  return !_isatty(_fileno(stdin));
+#else
+  return !isatty(fileno(stdin));
+#endif
+}
 
 /**
  * Check if the required number of arguments are available for the
@@ -68,7 +83,7 @@ static void hasMoreArgumentsOrExit(const char *option,
 }
 
 /**
- * Slurp stdin into a NUL-terminated buffer for msLoadMapFromString().
+ * Read stdin into a NUL-terminated buffer for msLoadMapFromString().
  * Rejects embedded NUL bytes, which would silently truncate the mapfile
  * mid-parse. Returns NULL on allocation, size, or input error. Caller frees.
  */
@@ -128,6 +143,11 @@ static char *readStdinToBuffer(void) {
   }
   buffer[length] = '\0';
 
+  if (length == 0) {
+    fprintf(stderr, "No Mapfile received on stdin.\n");
+    goto cleanup;
+  }
+
   /* A UTF-8 BOM breaks the lexer on the first token. */
   if (length >= 3 && memcmp(buffer, "\xEF\xBB\xBF", 3) == 0)
     memmove(buffer, buffer + 3, length - 3 + 1);
@@ -163,7 +183,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* ---- check the number of arguments, return syntax if not correct ---- */
-  if (argc < 3) {
+  if (argc < 3 && !stdinIsRedirected()) {
     fprintf(stdout, "\nPurpose: convert a mapfile to an image\n\n");
     fprintf(stdout, "Syntax: map2img -m mapfile [-o image] [-e minx miny maxx "
                     "maxy] [-s sizex sizey]\n"
@@ -171,8 +191,10 @@ int main(int argc, char *argv[]) {
                     "               [-all_debug n] [-map_debug n] "
                     "[-layer_debug n] [-p n] [-c n] [-d layername datavalue]\n"
                     "               [-conf filename]\n");
-    fprintf(stdout, "  -m mapfile: Map file to operate on - required. Use '-' "
-                    "to read the mapfile from stdin\n");
+    fprintf(stdout, "  -m mapfile: Mapfile to operate on - required. Use '-' "
+                    "to read the mapfile from stdin. If -m is omitted and "
+                    "stdin is not a terminal, the Mapfile is read from "
+                    "stdin\n");
     fprintf(stdout, "  -mappath path: base directory for relative SHAPEPATH, "
                     "FONTSET, SYMBOLSET and INCLUDE paths\n");
     fprintf(
@@ -203,7 +225,9 @@ int main(int argc, char *argv[]) {
   bool some_debug_requested = FALSE;
   const char *config_filename = NULL;
   const char *mappath = NULL;
-  const char *mapfile_buffer = NULL;
+  char *mapfile_buffer = NULL;
+  int have_m_option = 0;
+
   for (i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-c") == 0) { /* user specified number of draws */
       hasMoreArgumentsOrExit("-c", 1, argc - i - 1, config, map);
@@ -248,19 +272,29 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    /* Read a piped mapfile once outside the draws loop */
+    /* Read a piped Mapfile once outside the draws loop */
     if (strcmp(argv[i], "-m") == 0) {
       hasMoreArgumentsOrExit("-m", 1, argc - i - 1, config, map);
+      have_m_option = 1;
       if (strcmp(argv[i + 1], "-") == 0) {
         mapfile_buffer = readStdinToBuffer();
         if (!mapfile_buffer) {
-          fprintf(stderr, "Failed to read mapfile from stdin.\n");
           msCleanup();
           exit(1);
         }
       }
       ++i;
       continue;
+    }
+  }
+
+  /* No -m option supplied, but something is piped in, so read the Mapfile from
+   * stdin. */
+  if (!have_m_option && stdinIsRedirected()) {
+    mapfile_buffer = readStdinToBuffer();
+    if (!mapfile_buffer) {
+      msCleanup();
+      exit(1);
     }
   }
 
@@ -291,33 +325,32 @@ int main(int argc, char *argv[]) {
       exit(1);
     }
 
-    for (i = 1; i < argc;
-         i++) { /* Step though the user arguments, 1st to find map file */
-
-      if (strcmp(argv[i], "-m") == 0) {
-        hasMoreArgumentsOrExit("-m", 1, argc - i - 1, config, map);
-        if (mapfile_buffer) {
-          map = msLoadMapFromString(mapfile_buffer, mappath, config);
-        } else {
+    if (mapfile_buffer) {
+      map = msLoadMapFromString(mapfile_buffer, mappath, config);
+    } else {
+      for (i = 1; i < argc; i++) { /* find the map file */
+        if (strcmp(argv[i], "-m") == 0) {
+          hasMoreArgumentsOrExit("-m", 1, argc - i - 1, config, map);
           map = msLoadMap(argv[i + 1], mappath, config);
+          break;
         }
-        if (!map) {
-          msWriteError(stderr);
-          msCleanup();
-          msFreeConfig(config);
-          exit(1);
-        }
-        msApplyDefaultSubstitutions(map);
-        msApplyStyleItemsToLayers(map);
       }
     }
 
     if (!map) {
-      fprintf(stderr, "Mapfile (-m) option not specified.\n");
+      if (mapfile_buffer || have_m_option)
+        msWriteError(stderr); /* Mapfile loading failed */
+      else
+        fprintf(stderr, "No Mapfile specified. Use -m <mapfile>, -m - to read "
+                        "from stdin, or pipe a mapfile in.\n");
       msCleanup();
       msFreeConfig(config);
+      free(mapfile_buffer);
       exit(1);
     }
+
+    msApplyDefaultSubstitutions(map);
+    msApplyStyleItemsToLayers(map);
 
     for (i = 1; i < argc; i++) { /* Step though the user arguments */
 
