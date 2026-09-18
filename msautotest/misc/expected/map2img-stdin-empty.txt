@@ -1,0 +1,2 @@
+No Mapfile received on stdin.
+Failed to read Mapfile from stdin.
