@@ -84,7 +84,7 @@ static void hasMoreArgumentsOrExit(const char *option,
 
 /**
  * Read stdin into a NUL-terminated buffer for msLoadMapFromString().
- * Rejects embedded NUL bytes, which would silently truncate the mapfile
+ * Rejects embedded NUL bytes, which would silently truncate the Mapfile
  * mid-parse. Returns NULL on allocation, size, or input error. Caller frees.
  */
 static char *readStdinToBuffer(void) {
@@ -342,7 +342,7 @@ int main(int argc, char *argv[]) {
         msWriteError(stderr); /* Mapfile loading failed */
       else
         fprintf(stderr, "No Mapfile specified. Use -m <mapfile>, -m - to read "
-                        "from stdin, or pipe a mapfile in.\n");
+                        "from stdin, or pipe a Mapfile in.\n");
       msCleanup();
       msFreeConfig(config);
       free(mapfile_buffer);
