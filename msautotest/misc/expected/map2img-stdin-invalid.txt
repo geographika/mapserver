@@ -1,2 +1,1 @@
 msLoadMap(): Unknown identifier. First token must be MAP, this doesn't look like a mapfile. <br>
-msLoadConfig(): Unable to access file. See mapserver.org/mapfile/config.html for more information. <br>
