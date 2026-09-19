@@ -7047,7 +7047,7 @@ mapObj *msLoadMapFromString(const char *buffer, const char *new_mappath,
 
   msReleaseLock(TLOCK_PARSER);
 
-  msApplyStyleItemsToLayers(map);
+  msFinalizeMap(map);
 
   if (debuglevel >= MS_DEBUGLEVEL_TUNING) {
     /* In debug mode, report time spent loading/parsing mapfile. */
@@ -7065,11 +7065,16 @@ mapObj *msLoadMapFromString(const char *buffer, const char *new_mappath,
   return map;
 }
 
+mapObj *msLoadMap(const char *filename, const char *new_mappath,
+                  const configObj *config) {
+  return msLoadMapEx(filename, new_mappath, config, MS_TRUE);
+}
+
 /*
 ** Sets up file-based mapfile loading and calls loadMapInternal to do the work.
 */
-mapObj *msLoadMap(const char *filename, const char *new_mappath,
-                  const configObj *config) {
+mapObj *msLoadMapEx(const char *filename, const char *new_mappath,
+                    const configObj *config, int bFinalize) {
   mapObj *map;
   struct mstimeval starttime = {0}, endtime = {0};
   char szPath[MS_MAXPATHLEN], szCWDPath[MS_MAXPATHLEN];
@@ -7191,7 +7196,25 @@ mapObj *msLoadMap(const char *filename, const char *new_mappath,
                 (starttime.tv_sec + starttime.tv_usec / 1.0e6));
   }
 
+  if (bFinalize) {
+    msFinalizeMap(map);
+  }
+
   return map;
+}
+
+/*
+** Final processing steps to create a valid Mapfile.
+** Apply default variable substitutions to ensure a valid
+** Mapfile.
+** Convert any SLD file references into valid Mapfile syntax
+*/
+void msFinalizeMap(mapObj *map) {
+  if (!map)
+    return;
+
+  msApplyDefaultSubstitutions(map);
+  msApplyStyleItemsToLayers(map);
 }
 
 static void hashTableSubstituteString(hashTableObj *hash, const char *from,

@@ -2734,6 +2734,9 @@ MS_DLL_EXPORT int msGetSymbolIndex(symbolSetObj *set, const char *name,
                                    int try_addimage_if_notfound);
 MS_DLL_EXPORT mapObj *msLoadMap(const char *filename, const char *new_mappath,
                                 const configObj *config);
+MS_DLL_EXPORT mapObj *msLoadMapEx(const char *filename, const char *new_mappath,
+                                  const configObj *config, int bFinalize);
+MS_DLL_EXPORT void msFinalizeMap(mapObj *map);
 MS_DLL_EXPORT int msTransformXmlMapfile(const char *stylesheet,
                                         const char *xmlMapfile, FILE *tmpfile);
 MS_DLL_EXPORT int msSaveMap(mapObj *map, char *filename);

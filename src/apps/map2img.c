@@ -349,9 +349,6 @@ int main(int argc, char *argv[]) {
       exit(1);
     }
 
-    msApplyDefaultSubstitutions(map);
-    msApplyStyleItemsToLayers(map);
-
     for (i = 1; i < argc; i++) { /* Step though the user arguments */
 
       if (strcmp(argv[i], "-m") == 0) { /* skip it */
