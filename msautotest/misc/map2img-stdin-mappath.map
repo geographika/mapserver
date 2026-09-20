@@ -3,7 +3,7 @@
 #
 # -mappath resolves the relative DATA path - without it a piped Mapfile resolves to the CWD
 # RUN_PARMS: map2img-stdin-mappath.png [MAP2IMG] -m - -mappath data/shppoly > [RESULT] < [MAPFILE]
-# RUN_PARMS: map2img-stdin-nomappath.txt [MAP2IMG] -m - < [MAPFILE] > [RESULT] 2>&1 [STRIP:ShapefileOpen]
+# RUN_PARMS: map2img-stdin-nomappath.txt [MAP2IMG] -m - < [MAPFILE] > [RESULT] 2>&1 [STRIP:ShapefileOpen] [ASAN_SKIP_LOG]
 
 MAP
   NAME STDIN_MAPPATH
