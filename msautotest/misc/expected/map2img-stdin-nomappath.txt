@@ -1,0 +1,2 @@
+msDrawMap(): Image handling error. Failed to draw layer named 'poly'. <br>
+[stripped line matching "ShapefileOpen"]

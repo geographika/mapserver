@@ -1,0 +1,1 @@
+msLoadMap(): Unknown identifier. First token must be MAP, this doesn't look like a mapfile. <br>

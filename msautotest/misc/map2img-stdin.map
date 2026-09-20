@@ -1,0 +1,40 @@
+#
+# Test map2img reading Mapfiles from stdin
+#
+# RUN_PARMS: map2img-stdin-dash.png [MAP2IMG] -m - -o [RESULT] < [MAPFILE]
+# RUN_PARMS: map2img-stdin-implicit.png [MAP2IMG] -o [RESULT] < [MAPFILE]
+# RUN_PARMS: map2img-stdin-iterations.png [MAP2IMG] -m - -c 2 -o [RESULT] < [MAPFILE]
+# RUN_PARMS: map2img-stdin-file-wins.png [MAP2IMG] -m [MAPFILE] -o [RESULT] < data/map2img-stdin-other.map
+# RUN_PARMS: map2img-stdin-bom.png [MAP2IMG] -m - -o [RESULT] < data/map2img-stdin-bom.map
+# RUN_PARMS: map2img-stdin-parsed.txt [MAP2IMG] -m - -l "notalayer" < [MAPFILE] > [RESULT] 2>&1 [ASAN_SKIP_LOG]
+# RUN_PARMS: map2img-stdin-empty.txt [MAP2IMG] -m - < data/map2img-stdin-empty.map > [RESULT] 2>&1 [ASAN_SKIP_LOG]
+# RUN_PARMS: map2img-stdin-invalid.txt [MAP2IMG] -m - < data/map2img-stdin-invalid.map > [RESULT] 2>&1 [ASAN_SKIP_LOG]
+# RUN_PARMS: map2img-stdin-nul.txt [MAP2IMG] -m - < data/map2img-stdin-nul.map > [RESULT] 2>&1 [ASAN_SKIP_LOG]
+
+MAP
+  NAME STDIN_TEST
+  STATUS ON
+  EXTENT 59 10 60 11
+  SIZE 400 300
+  IMAGECOLOR 200 255 255
+  IMAGETYPE png
+
+  LAYER
+    NAME "credits"
+    STATUS DEFAULT
+    TRANSFORM FALSE
+    TYPE POINT
+    FEATURE
+      POINTS
+        200 250
+      END
+      TEXT 'Hello world'
+    END
+    CLASS
+      LABEL
+        TYPE BITMAP
+        COLOR 0 0 0
+      END
+    END
+  END
+END
