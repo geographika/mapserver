@@ -188,7 +188,7 @@ int main(int argc, char *argv[]) {
                     "               [-l \"layer1 [layers2...]\"] [-i format]\n"
                     "               [-all_debug n] [-map_debug n] "
                     "[-layer_debug n] [-p n] [-c n] [-d layername datavalue]\n"
-                    "               [-conf filename]\n");
+                    "               [-conf filename] [-mappath path]\n");
     fprintf(stdout, "  -m mapfile: Mapfile to operate on - required. Use '-' "
                     "to read the Mapfile from stdin. If -m is omitted and "
                     "stdin is not a terminal, the Mapfile is read from "
@@ -307,6 +307,7 @@ int main(int argc, char *argv[]) {
   for (draws = 0; draws < iterations; draws++) {
 
     struct mstimeval requeststarttime, requestendtime;
+    map = NULL;
 
     if (msGetGlobalDebugLevel() >= MS_DEBUGLEVEL_TUNING)
       msGettimeofday(&requeststarttime, NULL);

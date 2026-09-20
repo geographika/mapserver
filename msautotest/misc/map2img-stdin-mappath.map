@@ -1,0 +1,27 @@
+#
+# Test map2img reading Mapfiles from stdin with -mappath
+#
+# -mappath resolves the relative DATA path - without it a piped Mapfile resolves to the CWD
+# RUN_PARMS: map2img-stdin-mappath.png [MAP2IMG] -m - -mappath data/shppoly > [RESULT] < [MAPFILE]
+# RUN_PARMS: map2img-stdin-nomappath.txt [MAP2IMG] -m - < [MAPFILE] > [RESULT] 2>&1 [STRIP:ShapefileOpen]
+
+MAP
+  NAME STDIN_MAPPATH
+  STATUS ON
+  EXTENT 478300 4762880 481650 4765610
+  UNITS METERS
+  SIZE 400 300
+  IMAGETYPE png
+
+  LAYER
+    NAME "poly"
+    STATUS DEFAULT
+    TYPE POLYGON
+    DATA "poly.shp"
+    CLASS
+      STYLE
+        OUTLINECOLOR 51 51 51
+      END
+    END
+  END
+END

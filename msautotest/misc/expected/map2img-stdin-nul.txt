@@ -1,0 +1,1 @@
+Mapfile on stdin contains NUL bytes; expected plain text. Check the encoding of the piped input.
