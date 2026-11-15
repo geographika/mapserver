@@ -1,15 +1,13 @@
 # Create the msautotest database and load the MSSQL test data
 param (
     [string]$Server = "localhost",
-    [string]$Password = "Password12!",
-    [switch]$NoTrustServerCertificate  # for older sqlcmd versions without -C
+    [string]$Password = "Password12!"
 )
 $ErrorActionPreference = "Stop"
 
 $env:MSSQLSPATIAL_USE_BCP = "FALSE"
 
-$trust = if ($NoTrustServerCertificate) { @() } else { @("-C") }
-sqlcmd -S $Server -U sa -P $Password @trust -Q "USE [master]; CREATE DATABASE msautotest;"
+sqlcmd -S $Server -U sa -P $Password -C -Q "USE [master]; CREATE DATABASE msautotest;"
 if ($LASTEXITCODE -ne 0) { throw "CREATE DATABASE failed" }
 
 $ogrConn = "MSSQL:DRIVER={ODBC Driver 18 for SQL Server};server=$Server;database=msautotest;UID=sa;PWD=$Password;TrustServerCertificate=yes;"
