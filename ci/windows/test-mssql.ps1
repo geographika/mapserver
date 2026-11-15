@@ -17,6 +17,12 @@ $env:CURL_CA_BUNDLE = "$SDK_BIN\curl-ca-bundle.crt"
 Write-Host "Using $((Get-Command mapserv).Source)"
 mapserv -v
 
+# ensure ODBC Driver 18 is installed
+if (-not (Get-OdbcDriver -Name "ODBC Driver 18*")) {
+    choco install sqlserver-odbcdriver-18 -y --no-progress
+    if ($LASTEXITCODE -ne 0) { throw "Installing ODBC Driver 18 failed" }
+}
+
 cd msautotest
 
 ./mssql/create_mssql_db.ps1 -Server $Server -Password $Password
