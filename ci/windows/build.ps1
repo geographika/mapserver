@@ -15,6 +15,8 @@ $REGEX_DIR = "$ROOT/sdk/support/regex-0.12"
 New-Item -ItemType Directory -Force build | Out-Null
 Push-Location build
 
+$env:PATH = "$ROOT/build/Release;$SDK_BIN;" + $env:PATH
+
 cmake -G "$VS_VER" -A x64 "$ROOT" `
     -DCMAKE_BUILD_TYPE=Release `
     -DCMAKE_PREFIX_PATH="$SDK_PREFIX" `
@@ -51,7 +53,6 @@ cmake --build . --config Release
 if ($LASTEXITCODE -ne 0) { throw "Build failed" }
 
 # check the executable runs and the MSSQL plugin was built
-$env:PATH = "$ROOT/build/Release;$SDK_BIN;" + $env:PATH
 ./Release/mapserv.exe -v
 if ($LASTEXITCODE -ne 0) { throw "mapserv -v failed" }
 if (-not (Test-Path ./Release/msplugin_mssql2008.dll)) { throw "msplugin_mssql2008.dll not built" }

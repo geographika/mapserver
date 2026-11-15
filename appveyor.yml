@@ -37,6 +37,7 @@ shallow_clone: false
 clone_depth: 5
 
 init:
+  - choco install sqlserver-odbcdriver-18 -y --no-progress
   - ps: if (-not (Get-OdbcDriver -Name "ODBC Driver 18*")) { throw "ODBC Driver 18 for SQL Server not installed" }
   - ps: |
       # make the SQL2019 instance available as localhost port 1433
